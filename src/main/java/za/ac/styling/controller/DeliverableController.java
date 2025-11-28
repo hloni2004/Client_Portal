@@ -1,10 +1,12 @@
 package za.ac.styling.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import za.ac.styling.domain.Deliverable;
+import za.ac.styling.dto.*;
 import za.ac.styling.service.IDeliverableService;
 
 import java.util.List;
@@ -23,11 +25,9 @@ public class DeliverableController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<Deliverable> uploadDeliverable(@RequestParam String fileName,
-                                                          @RequestParam String fileType,
-                                                          @RequestParam String fileUrl,
-                                                          @RequestParam Integer projectId) {
-        Deliverable deliverable = deliverableService.uploadDeliverable(fileName, fileType, fileUrl, projectId);
+    public ResponseEntity<Deliverable> uploadDeliverable(@Valid @RequestBody DeliverableUploadDto dto) {
+        Deliverable deliverable = deliverableService.uploadDeliverable(dto.getFileName(), 
+                dto.getFileType(), dto.getFileUrl(), dto.getProjectId());
         return new ResponseEntity<>(deliverable, HttpStatus.CREATED);
     }
 
@@ -70,9 +70,9 @@ public class DeliverableController {
         return ResponseEntity.ok(deliverables);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<Deliverable>> searchByFileName(@RequestParam String fileName) {
-        List<Deliverable> deliverables = deliverableService.searchByFileName(fileName);
+    @PostMapping("/search")
+    public ResponseEntity<List<Deliverable>> searchByFileName(@Valid @RequestBody SearchDto dto) {
+        List<Deliverable> deliverables = deliverableService.searchByFileName(dto.getQuery());
         return ResponseEntity.ok(deliverables);
     }
 

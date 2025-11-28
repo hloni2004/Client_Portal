@@ -1,10 +1,12 @@
 package za.ac.styling.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import za.ac.styling.domain.Feedback;
+import za.ac.styling.dto.*;
 import za.ac.styling.service.IFeedbackService;
 
 import java.util.List;
@@ -23,10 +25,9 @@ public class FeedbackController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Feedback> addFeedback(@RequestParam String message,
-                                                 @RequestParam Integer deliverableId,
-                                                 @RequestParam Integer userId) {
-        Feedback feedback = feedbackService.addFeedback(message, deliverableId, userId);
+    public ResponseEntity<Feedback> addFeedback(@Valid @RequestBody FeedbackAddDto dto) {
+        Feedback feedback = feedbackService.addFeedback(dto.getMessage(), 
+                dto.getDeliverableId(), dto.getUserId());
         return new ResponseEntity<>(feedback, HttpStatus.CREATED);
     }
 

@@ -1,11 +1,13 @@
 package za.ac.styling.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import za.ac.styling.domain.ProjectAccessRole;
 import za.ac.styling.domain.ProjectUser;
+import za.ac.styling.dto.*;
 import za.ac.styling.service.IProjectUserService;
 
 import java.util.List;
@@ -24,10 +26,9 @@ public class ProjectUserController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<ProjectUser> addUserToProject(@RequestParam Integer projectId,
-                                                         @RequestParam Integer userId,
-                                                         @RequestParam ProjectAccessRole role) {
-        ProjectUser projectUser = projectUserService.addUserToProject(projectId, userId, role);
+    public ResponseEntity<ProjectUser> addUserToProject(@Valid @RequestBody ProjectUserAddDto dto) {
+        ProjectUser projectUser = projectUserService.addUserToProject(dto.getProjectId(), 
+                dto.getUserId(), dto.getRole());
         return new ResponseEntity<>(projectUser, HttpStatus.CREATED);
     }
 
@@ -77,10 +78,9 @@ public class ProjectUserController {
         return ResponseEntity.ok(projectUsers);
     }
 
-    @GetMapping("/exists")
-    public ResponseEntity<Boolean> checkUserInProject(@RequestParam Integer projectId,
-                                                       @RequestParam Integer userId) {
-        boolean exists = projectUserService.existsByProjectIdAndUserId(projectId, userId);
+    @PostMapping("/exists")
+    public ResponseEntity<Boolean> checkUserInProject(@Valid @RequestBody ProjectUserCheckDto dto) {
+        boolean exists = projectUserService.existsByProjectIdAndUserId(dto.getProjectId(), dto.getUserId());
         return ResponseEntity.ok(exists);
     }
 
@@ -95,10 +95,8 @@ public class ProjectUserController {
     }
 
     @PutMapping("/change-role")
-    public ResponseEntity<Void> changeUserRole(@RequestParam Integer projectId,
-                                                @RequestParam Integer userId,
-                                                @RequestParam ProjectAccessRole newRole) {
-        projectUserService.changeUserRole(projectId, userId, newRole);
+    public ResponseEntity<Void> changeUserRole(@Valid @RequestBody ProjectUserRoleChangeDto dto) {
+        projectUserService.changeUserRole(dto.getProjectId(), dto.getUserId(), dto.getNewRole());
         return ResponseEntity.ok().build();
     }
 
@@ -112,9 +110,8 @@ public class ProjectUserController {
     }
 
     @DeleteMapping("/remove")
-    public ResponseEntity<Void> removeUserFromProject(@RequestParam Integer projectId,
-                                                       @RequestParam Integer userId) {
-        projectUserService.removeUserFromProject(projectId, userId);
+    public ResponseEntity<Void> removeUserFromProject(@Valid @RequestBody ProjectUserCheckDto dto) {
+        projectUserService.removeUserFromProject(dto.getProjectId(), dto.getUserId());
         return ResponseEntity.noContent().build();
     }
 

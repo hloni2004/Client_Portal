@@ -1,5 +1,6 @@
 package za.ac.styling.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -7,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import za.ac.styling.domain.Task;
 import za.ac.styling.domain.TaskStatus;
+import za.ac.styling.dto.*;
 import za.ac.styling.service.ITaskService;
 
 import java.time.LocalDate;
@@ -26,12 +28,9 @@ public class TaskController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Task> createTask(@RequestParam String title,
-                                           @RequestParam String description,
-                                           @RequestParam Integer projectId,
-                                           @RequestParam Integer assignedToId,
-                                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate) {
-        Task task = taskService.createTask(title, description, projectId, assignedToId, dueDate);
+    public ResponseEntity<Task> createTask(@Valid @RequestBody TaskCreateDto dto) {
+        Task task = taskService.createTask(dto.getTitle(), dto.getDescription(), 
+                dto.getProjectId(), dto.getAssignedToId(), dto.getDueDate());
         return new ResponseEntity<>(task, HttpStatus.CREATED);
     }
 
@@ -80,9 +79,9 @@ public class TaskController {
         return ResponseEntity.ok(tasks);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<Task>> searchByTitle(@RequestParam String title) {
-        List<Task> tasks = taskService.searchByTitle(title);
+    @PostMapping("/search")
+    public ResponseEntity<List<Task>> searchByTitle(@Valid @RequestBody SearchDto dto) {
+        List<Task> tasks = taskService.searchByTitle(dto.getQuery());
         return ResponseEntity.ok(tasks);
     }
 
@@ -104,15 +103,15 @@ public class TaskController {
 
     @PutMapping("/{id}/status")
     public ResponseEntity<Void> updateTaskStatus(@PathVariable Integer id,
-                                                  @RequestParam TaskStatus status) {
-        taskService.updateTaskStatus(id, status);
+                                                  @Valid @RequestBody TaskStatusUpdateDto dto) {
+        taskService.updateTaskStatus(id, dto.getStatus());
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}/assign")
     public ResponseEntity<Void> assignTask(@PathVariable Integer id,
-                                           @RequestParam Integer userId) {
-        taskService.assignTask(id, userId);
+                                           @Valid @RequestBody TaskAssignDto dto) {
+        taskService.assignTask(id, dto.getUserId());
         return ResponseEntity.ok().build();
     }
 

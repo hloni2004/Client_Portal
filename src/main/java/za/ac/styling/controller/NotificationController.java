@@ -1,11 +1,13 @@
 package za.ac.styling.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import za.ac.styling.domain.Notification;
 import za.ac.styling.domain.NotificationType;
+import za.ac.styling.dto.*;
 import za.ac.styling.service.INotificationService;
 
 import java.util.List;
@@ -24,10 +26,9 @@ public class NotificationController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Notification> createNotification(@RequestParam String message,
-                                                            @RequestParam NotificationType type,
-                                                            @RequestParam Integer userId) {
-        Notification notification = notificationService.createNotification(message, type, userId);
+    public ResponseEntity<Notification> createNotification(@Valid @RequestBody NotificationCreateDto dto) {
+        Notification notification = notificationService.createNotification(dto.getMessage(), 
+                dto.getType(), dto.getUserId());
         return new ResponseEntity<>(notification, HttpStatus.CREATED);
     }
 

@@ -1,5 +1,6 @@
 package za.ac.styling.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -7,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import za.ac.styling.domain.Project;
 import za.ac.styling.domain.ProjectStatus;
+import za.ac.styling.dto.*;
 import za.ac.styling.service.IProjectService;
 
 import java.time.LocalDate;
@@ -26,12 +28,9 @@ public class ProjectController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Project> createProject(@RequestParam Integer clientId,
-                                                  @RequestParam String title,
-                                                  @RequestParam String description,
-                                                  @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                                                  @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate) {
-        Project project = projectService.createProject(clientId, title, description, startDate, dueDate);
+    public ResponseEntity<Project> createProject(@Valid @RequestBody ProjectCreateDto dto) {
+        Project project = projectService.createProject(dto.getClientId(), dto.getTitle(), 
+                dto.getDescription(), dto.getStartDate(), dto.getDueDate());
         return new ResponseEntity<>(project, HttpStatus.CREATED);
     }
 
@@ -67,9 +66,9 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<Project>> searchByTitle(@RequestParam String title) {
-        List<Project> projects = projectService.searchByTitle(title);
+    @PostMapping("/search")
+    public ResponseEntity<List<Project>> searchByTitle(@Valid @RequestBody SearchDto dto) {
+        List<Project> projects = projectService.searchByTitle(dto.getQuery());
         return ResponseEntity.ok(projects);
     }
 
@@ -79,11 +78,9 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
-    @GetMapping("/due-between")
-    public ResponseEntity<List<Project>> getProjectsDueBetween(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        List<Project> projects = projectService.findProjectsDueBetween(startDate, endDate);
+    @PostMapping("/due-between")
+    public ResponseEntity<List<Project>> getProjectsDueBetween(@Valid @RequestBody DateRangeDto dto) {
+        List<Project> projects = projectService.findProjectsDueBetween(dto.getStartDate(), dto.getEndDate());
         return ResponseEntity.ok(projects);
     }
 
@@ -99,15 +96,15 @@ public class ProjectController {
 
     @PutMapping("/{id}/status")
     public ResponseEntity<Void> updateProjectStatus(@PathVariable Integer id,
-                                                     @RequestParam ProjectStatus status) {
-        projectService.updateProjectStatus(id, status);
+                                                     @Valid @RequestBody ProjectStatusUpdateDto dto) {
+        projectService.updateProjectStatus(id, dto.getStatus());
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}/progress")
     public ResponseEntity<Void> updateProjectProgress(@PathVariable Integer id,
-                                                       @RequestParam Double progress) {
-        projectService.updateProjectProgress(id, progress);
+                                                       @Valid @RequestBody ProjectProgressUpdateDto dto) {
+        projectService.updateProjectProgress(id, dto.getProgress());
         return ResponseEntity.ok().build();
     }
 

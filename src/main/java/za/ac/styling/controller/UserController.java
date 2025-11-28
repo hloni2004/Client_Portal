@@ -1,11 +1,13 @@
 package za.ac.styling.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import za.ac.styling.domain.User;
 import za.ac.styling.domain.UserRole;
+import za.ac.styling.dto.*;
 import za.ac.styling.service.IUserService;
 
 import java.util.List;
@@ -24,18 +26,14 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestParam String name,
-                                         @RequestParam String email,
-                                         @RequestParam String password,
-                                         @RequestParam UserRole role) {
-        User registered = userService.register(name, email, password, role);
+    public ResponseEntity<User> register(@Valid @RequestBody UserRegisterDto dto) {
+        User registered = userService.register(dto.getName(), dto.getEmail(), dto.getPassword(), dto.getRole());
         return new ResponseEntity<>(registered, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<User> login(@RequestParam String email,
-                                      @RequestParam String password) {
-        User user = userService.login(email, password);
+    public ResponseEntity<User> login(@Valid @RequestBody UserLoginDto dto) {
+        User user = userService.login(dto.getEmail(), dto.getPassword());
         return ResponseEntity.ok(user);
     }
 
@@ -65,9 +63,9 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<User>> searchByName(@RequestParam String name) {
-        List<User> users = userService.searchByName(name);
+    @PostMapping("/search")
+    public ResponseEntity<List<User>> searchByName(@Valid @RequestBody SearchDto dto) {
+        List<User> users = userService.searchByName(dto.getQuery());
         return ResponseEntity.ok(users);
     }
 
@@ -89,18 +87,15 @@ public class UserController {
 
     @PutMapping("/{id}/profile")
     public ResponseEntity<Void> updateProfile(@PathVariable Integer id,
-                                              @RequestParam String name,
-                                              @RequestParam(required = false) String companyName,
-                                              @RequestParam(required = false) String phone) {
-        userService.updateProfile(id, name, companyName, phone);
+                                              @Valid @RequestBody UserProfileUpdateDto dto) {
+        userService.updateProfile(id, dto.getName(), dto.getCompanyName(), dto.getPhone());
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}/password")
     public ResponseEntity<Void> changePassword(@PathVariable Integer id,
-                                                @RequestParam String oldPassword,
-                                                @RequestParam String newPassword) {
-        userService.changePassword(id, oldPassword, newPassword);
+                                                @Valid @RequestBody ChangePasswordDto dto) {
+        userService.changePassword(id, dto.getOldPassword(), dto.getNewPassword());
         return ResponseEntity.ok().build();
     }
 
