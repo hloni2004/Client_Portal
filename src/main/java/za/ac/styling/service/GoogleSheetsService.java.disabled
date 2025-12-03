@@ -1,0 +1,304 @@
+package za.ac.styling.service;
+
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.SheetsScopes;
+import com.google.api.services.sheets.v4.model.AppendValuesResponse;
+import com.google.api.services.sheets.v4.model.ValueRange;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import za.ac.styling.dto.GoogleSheetProjectDto;
+import za.ac.styling.dto.GoogleSheetTaskDto;
+import za.ac.styling.dto.GoogleSheetUserDto;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+@Slf4j
+@Service
+public class GoogleSheetsService {
+
+    private static final String APPLICATION_NAME = "Client Hub Portal";
+    private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+    private static final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS);
+
+    @Value("${google.sheets.credentials.path:src/main/resources/google-service-account.json}")
+    private String credentialsPath;
+
+    @Value("${google.sheets.spreadsheet.id}")
+    private String spreadsheetId;
+
+    private Sheets getSheetsService() throws IOException, GeneralSecurityException {
+        final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+        
+        GoogleCredentials credentials = GoogleCredentials
+                .fromStream(new FileInputStream(credentialsPath))
+                .createScoped(SCOPES);
+
+        return new Sheets.Builder(httpTransport, JSON_FACTORY, new HttpCredentialsAdapter(credentials))
+                .setApplicationName(APPLICATION_NAME)
+                .build();
+    }
+
+    // ==================== PROJECTS ====================
+
+    public List<List<Object>> readProjects() throws IOException, GeneralSecurityException {
+        Sheets service = getSheetsService();
+        String range = "Projects!A2:H500";
+        
+        ValueRange response = service.spreadsheets().values()
+                .get(spreadsheetId, range)
+                .execute();
+        
+        List<List<Object>> values = response.getValues();
+        
+        if (values == null || values.isEmpty()) {
+            log.info("No project data found in Google Sheets");
+            return new ArrayList<>();
+        }
+        
+        log.info("Read {} projects from Google Sheets", values.size());
+        return values;
+    }
+
+    public AppendValuesResponse writeProject(GoogleSheetProjectDto dto) throws IOException, GeneralSecurityException {
+        Sheets service = getSheetsService();
+        String range = "Projects!A:H";
+
+        List<Object> row = Arrays.asList(
+                dto.projectId(),
+                dto.clientId(),
+                dto.title(),
+                dto.description() != null ? dto.description() : "",
+                dto.startDate(),
+                dto.dueDate(),
+                dto.status(),
+                dto.progress()
+        );
+
+        ValueRange body = new ValueRange()
+                .setValues(Collections.singletonList(row));
+
+        AppendValuesResponse response = service.spreadsheets().values()
+                .append(spreadsheetId, range, body)
+                .setValueInputOption("RAW")
+                .setInsertDataOption("INSERT_ROWS")
+                .execute();
+
+        log.info("Appended project {} to Google Sheets: {} cells updated", 
+                dto.projectId(), response.getUpdates().getUpdatedCells());
+        
+        return response;
+    }
+
+    public void syncProjectsToSheet(List<GoogleSheetProjectDto> projects) throws IOException, GeneralSecurityException {
+        Sheets service = getSheetsService();
+        String range = "Projects!A2:H";
+
+        // Clear existing data first
+        service.spreadsheets().values()
+                .clear(spreadsheetId, range, new com.google.api.services.sheets.v4.model.ClearValuesRequest())
+                .execute();
+
+        // Prepare all rows
+        List<List<Object>> allRows = new ArrayList<>();
+        for (GoogleSheetProjectDto dto : projects) {
+            List<Object> row = Arrays.asList(
+                    dto.projectId(),
+                    dto.clientId(),
+                    dto.title(),
+                    dto.description() != null ? dto.description() : "",
+                    dto.startDate(),
+                    dto.dueDate(),
+                    dto.status(),
+                    dto.progress()
+            );
+            allRows.add(row);
+        }
+
+        if (!allRows.isEmpty()) {
+            ValueRange body = new ValueRange().setValues(allRows);
+            service.spreadsheets().values()
+                    .update(spreadsheetId, range, body)
+                    .setValueInputOption("RAW")
+                    .execute();
+            
+            log.info("Synced {} projects to Google Sheets", allRows.size());
+        }
+    }
+
+    // ==================== TASKS ====================
+
+    public List<List<Object>> readTasks() throws IOException, GeneralSecurityException {
+        Sheets service = getSheetsService();
+        String range = "Tasks!A2:G500";
+        
+        ValueRange response = service.spreadsheets().values()
+                .get(spreadsheetId, range)
+                .execute();
+        
+        List<List<Object>> values = response.getValues();
+        
+        if (values == null || values.isEmpty()) {
+            log.info("No task data found in Google Sheets");
+            return new ArrayList<>();
+        }
+        
+        log.info("Read {} tasks from Google Sheets", values.size());
+        return values;
+    }
+
+    public AppendValuesResponse writeTask(GoogleSheetTaskDto dto) throws IOException, GeneralSecurityException {
+        Sheets service = getSheetsService();
+        String range = "Tasks!A:G";
+
+        List<Object> row = Arrays.asList(
+                dto.taskId(),
+                dto.title(),
+                dto.description() != null ? dto.description() : "",
+                dto.projectId(),
+                dto.assignedToId() != null ? dto.assignedToId() : "",
+                dto.dueDate(),
+                dto.status()
+        );
+
+        ValueRange body = new ValueRange()
+                .setValues(Collections.singletonList(row));
+
+        AppendValuesResponse response = service.spreadsheets().values()
+                .append(spreadsheetId, range, body)
+                .setValueInputOption("RAW")
+                .setInsertDataOption("INSERT_ROWS")
+                .execute();
+
+        log.info("Appended task {} to Google Sheets: {} cells updated", 
+                dto.taskId(), response.getUpdates().getUpdatedCells());
+        
+        return response;
+    }
+
+    public void syncTasksToSheet(List<GoogleSheetTaskDto> tasks) throws IOException, GeneralSecurityException {
+        Sheets service = getSheetsService();
+        String range = "Tasks!A2:G";
+
+        service.spreadsheets().values()
+                .clear(spreadsheetId, range, new com.google.api.services.sheets.v4.model.ClearValuesRequest())
+                .execute();
+
+        List<List<Object>> allRows = new ArrayList<>();
+        for (GoogleSheetTaskDto dto : tasks) {
+            List<Object> row = Arrays.asList(
+                    dto.taskId(),
+                    dto.title(),
+                    dto.description() != null ? dto.description() : "",
+                    dto.projectId(),
+                    dto.assignedToId() != null ? dto.assignedToId() : "",
+                    dto.dueDate(),
+                    dto.status()
+            );
+            allRows.add(row);
+        }
+
+        if (!allRows.isEmpty()) {
+            ValueRange body = new ValueRange().setValues(allRows);
+            service.spreadsheets().values()
+                    .update(spreadsheetId, range, body)
+                    .setValueInputOption("RAW")
+                    .execute();
+            
+            log.info("Synced {} tasks to Google Sheets", allRows.size());
+        }
+    }
+
+    // ==================== USERS ====================
+
+    public List<List<Object>> readUsers() throws IOException, GeneralSecurityException {
+        Sheets service = getSheetsService();
+        String range = "Users!A2:F500";
+        
+        ValueRange response = service.spreadsheets().values()
+                .get(spreadsheetId, range)
+                .execute();
+        
+        List<List<Object>> values = response.getValues();
+        
+        if (values == null || values.isEmpty()) {
+            log.info("No user data found in Google Sheets");
+            return new ArrayList<>();
+        }
+        
+        log.info("Read {} users from Google Sheets", values.size());
+        return values;
+    }
+
+    public AppendValuesResponse writeUser(GoogleSheetUserDto dto) throws IOException, GeneralSecurityException {
+        Sheets service = getSheetsService();
+        String range = "Users!A:F";
+
+        List<Object> row = Arrays.asList(
+                dto.userId(),
+                dto.name() != null ? dto.name() : "",
+                dto.email() != null ? dto.email() : "",
+                dto.role() != null ? dto.role() : "",
+                dto.companyName() != null ? dto.companyName() : "",
+                dto.createdAt() != null ? dto.createdAt() : ""
+        );
+
+        ValueRange body = new ValueRange()
+                .setValues(Collections.singletonList(row));
+
+        AppendValuesResponse response = service.spreadsheets().values()
+                .append(spreadsheetId, range, body)
+                .setValueInputOption("RAW")
+                .setInsertDataOption("INSERT_ROWS")
+                .execute();
+
+        log.info("Appended user {} to Google Sheets: {} cells updated", 
+                dto.userId(), response.getUpdates().getUpdatedCells());
+        
+        return response;
+    }
+
+    public void syncUsersToSheet(List<GoogleSheetUserDto> users) throws IOException, GeneralSecurityException {
+        Sheets service = getSheetsService();
+        String range = "Users!A2:F";
+
+        service.spreadsheets().values()
+                .clear(spreadsheetId, range, new com.google.api.services.sheets.v4.model.ClearValuesRequest())
+                .execute();
+
+        List<List<Object>> allRows = new ArrayList<>();
+        for (GoogleSheetUserDto dto : users) {
+            List<Object> row = Arrays.asList(
+                    dto.userId(),
+                    dto.name() != null ? dto.name() : "",
+                    dto.email() != null ? dto.email() : "",
+                    dto.role() != null ? dto.role() : "",
+                    dto.companyName() != null ? dto.companyName() : "",
+                    dto.createdAt() != null ? dto.createdAt() : ""
+            );
+            allRows.add(row);
+        }
+
+        if (!allRows.isEmpty()) {
+            ValueRange body = new ValueRange().setValues(allRows);
+            service.spreadsheets().values()
+                    .update(spreadsheetId, range, body)
+                    .setValueInputOption("RAW")
+                    .execute();
+            
+            log.info("Synced {} users to Google Sheets", allRows.size());
+        }
+    }
+}

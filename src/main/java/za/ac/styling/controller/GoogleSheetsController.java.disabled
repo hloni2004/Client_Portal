@@ -1,0 +1,144 @@
+package za.ac.styling.controller;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import za.ac.styling.dto.GoogleSheetProjectDto;
+import za.ac.styling.dto.GoogleSheetTaskDto;
+import za.ac.styling.dto.GoogleSheetUserDto;
+import za.ac.styling.service.GoogleSheetsService;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.List;
+import java.util.Map;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/sheets")
+@RequiredArgsConstructor
+// @Profile("google-sheets") // Uncomment to enable Google Sheets integration
+public class GoogleSheetsController {
+
+    private final GoogleSheetsService googleSheetsService;
+
+    // ==================== PROJECTS ====================
+
+    @GetMapping("/projects")
+    public ResponseEntity<List<List<Object>>> getProjects() {
+        try {
+            List<List<Object>> projects = googleSheetsService.readProjects();
+            return ResponseEntity.ok(projects);
+        } catch (IOException | GeneralSecurityException e) {
+            log.error("Error reading projects from Google Sheets", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/projects")
+    public ResponseEntity<Map<String, String>> addProject(@Valid @RequestBody GoogleSheetProjectDto dto) {
+        try {
+            googleSheetsService.writeProject(dto);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(Map.of("message", "Project added to Google Sheets successfully"));
+        } catch (IOException | GeneralSecurityException e) {
+            log.error("Error writing project to Google Sheets", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to add project to Google Sheets"));
+        }
+    }
+
+    @PostMapping("/projects/sync")
+    public ResponseEntity<Map<String, String>> syncProjects(@RequestBody List<GoogleSheetProjectDto> projects) {
+        try {
+            googleSheetsService.syncProjectsToSheet(projects);
+            return ResponseEntity.ok()
+                    .body(Map.of("message", projects.size() + " projects synced to Google Sheets"));
+        } catch (IOException | GeneralSecurityException e) {
+            log.error("Error syncing projects to Google Sheets", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to sync projects"));
+        }
+    }
+
+    // ==================== TASKS ====================
+
+    @GetMapping("/tasks")
+    public ResponseEntity<List<List<Object>>> getTasks() {
+        try {
+            List<List<Object>> tasks = googleSheetsService.readTasks();
+            return ResponseEntity.ok(tasks);
+        } catch (IOException | GeneralSecurityException e) {
+            log.error("Error reading tasks from Google Sheets", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/tasks")
+    public ResponseEntity<Map<String, String>> addTask(@Valid @RequestBody GoogleSheetTaskDto dto) {
+        try {
+            googleSheetsService.writeTask(dto);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(Map.of("message", "Task added to Google Sheets successfully"));
+        } catch (IOException | GeneralSecurityException e) {
+            log.error("Error writing task to Google Sheets", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to add task to Google Sheets"));
+        }
+    }
+
+    @PostMapping("/tasks/sync")
+    public ResponseEntity<Map<String, String>> syncTasks(@RequestBody List<GoogleSheetTaskDto> tasks) {
+        try {
+            googleSheetsService.syncTasksToSheet(tasks);
+            return ResponseEntity.ok()
+                    .body(Map.of("message", tasks.size() + " tasks synced to Google Sheets"));
+        } catch (IOException | GeneralSecurityException e) {
+            log.error("Error syncing tasks to Google Sheets", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to sync tasks"));
+        }
+    }
+
+    // ==================== USERS ====================
+
+    @GetMapping("/users")
+    public ResponseEntity<List<List<Object>>> getUsers() {
+        try {
+            List<List<Object>> users = googleSheetsService.readUsers();
+            return ResponseEntity.ok(users);
+        } catch (IOException | GeneralSecurityException e) {
+            log.error("Error reading users from Google Sheets", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/users")
+    public ResponseEntity<Map<String, String>> addUser(@Valid @RequestBody GoogleSheetUserDto dto) {
+        try {
+            googleSheetsService.writeUser(dto);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(Map.of("message", "User added to Google Sheets successfully"));
+        } catch (IOException | GeneralSecurityException e) {
+            log.error("Error writing user to Google Sheets", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to add user to Google Sheets"));
+        }
+    }
+
+    @PostMapping("/users/sync")
+    public ResponseEntity<Map<String, String>> syncUsers(@RequestBody List<GoogleSheetUserDto> users) {
+        try {
+            googleSheetsService.syncUsersToSheet(users);
+            return ResponseEntity.ok()
+                    .body(Map.of("message", users.size() + " users synced to Google Sheets"));
+        } catch (IOException | GeneralSecurityException e) {
+            log.error("Error syncing users to Google Sheets", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to sync users"));
+        }
+    }
+}

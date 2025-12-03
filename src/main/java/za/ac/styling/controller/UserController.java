@@ -63,6 +63,12 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    @GetMapping("/clients")
+    public ResponseEntity<List<User>> getClients() {
+        List<User> clients = userService.findByRole(UserRole.CLIENT);
+        return ResponseEntity.ok(clients);
+    }
+
     @PostMapping("/search")
     public ResponseEntity<List<User>> searchByName(@Valid @RequestBody SearchDto dto) {
         List<User> users = userService.searchByName(dto.getQuery());
