@@ -162,4 +162,19 @@ public class UserServiceImpl implements IUserService {
         user.setPassword(newPassword);
         userRepository.save(user);
     }
+
+    @Override
+    public void resetPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+        
+        // Generate a temporary password
+        String temporaryPassword = "Temp" + System.currentTimeMillis();
+        user.setPassword(temporaryPassword);
+        userRepository.save(user);
+        
+        // In a real application, send an email with the reset link
+        // For now, we'll just log it
+        System.out.println("Password reset for " + email + ". Temporary password: " + temporaryPassword);
+    }
 }

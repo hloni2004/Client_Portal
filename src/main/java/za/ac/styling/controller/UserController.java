@@ -105,6 +105,12 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordDto dto) {
+        userService.resetPassword(dto.getEmail());
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
         if (!userService.existsById(id)) {

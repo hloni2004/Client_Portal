@@ -140,11 +140,13 @@ public class TaskServiceImpl implements ITaskService {
     }
 
     @Override
-    public Task createTask(String title, String description, Integer projectId, Integer assignedToId, LocalDate dueDate) {
+    public Task createTask(String title, String description, Integer projectId, Integer assignedToId, LocalDate dueDate, String deliverable, String notes) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Project not found with id: " + projectId));
         
         Task task = TaskFactory.createTask(title, description, project, assignedToId, dueDate);
+        task.setDeliverable(deliverable);
+        task.setNotes(notes);
         return taskRepository.save(task);
     }
 }

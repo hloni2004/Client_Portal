@@ -34,6 +34,12 @@ public class Task {
 
     private LocalDate dueDate;
 
+    @Column(columnDefinition = "TEXT")
+    private String deliverable;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
     @JsonIgnore

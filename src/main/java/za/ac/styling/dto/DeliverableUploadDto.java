@@ -24,4 +24,6 @@ public class DeliverableUploadDto {
 
     @NotNull(message = "Project ID is required")
     private Integer projectId;
+
+    private Integer taskId;
 }

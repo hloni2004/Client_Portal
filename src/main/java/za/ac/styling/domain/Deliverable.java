@@ -39,6 +39,8 @@ public class Deliverable {
     @Builder.Default
     private Boolean approved = false;
 
+    private Integer taskId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
     @JsonIgnore

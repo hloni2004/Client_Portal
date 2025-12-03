@@ -26,5 +26,5 @@ public interface ITaskService extends IService<Task, Integer> {
 
     void assignTask(Integer taskId, Integer userId);
 
-    Task createTask(String title, String description, Integer projectId, Integer assignedToId, LocalDate dueDate);
+    Task createTask(String title, String description, Integer projectId, Integer assignedToId, LocalDate dueDate, String deliverable, String notes);
 }

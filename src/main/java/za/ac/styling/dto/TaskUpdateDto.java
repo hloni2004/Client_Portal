@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import za.ac.styling.domain.TaskStatus;
 
 import java.time.LocalDate;
 
@@ -14,21 +15,18 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TaskCreateDto {
+public class TaskUpdateDto {
 
     @NotBlank(message = "Title is required")
     private String title;
 
-    @NotBlank(message = "Description is required")
     private String description;
 
-    @NotNull(message = "Project ID is required")
-    private Integer projectId;
+    @NotNull(message = "Status is required")
+    private TaskStatus status;
 
-    @NotNull(message = "Assigned user ID is required")
     private Integer assignedToId;
 
-    @NotNull(message = "Due date is required")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dueDate;
 

@@ -18,5 +18,5 @@ public interface IDeliverableService extends IService<Deliverable, Integer> {
 
     void approveDeliverable(Integer deliverableId);
 
-    Deliverable uploadDeliverable(String fileName, String fileType, String fileUrl, Integer projectId);
+    Deliverable uploadDeliverable(String fileName, String fileType, String fileUrl, Integer projectId, Integer taskId);
 }

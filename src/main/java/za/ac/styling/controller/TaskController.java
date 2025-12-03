@@ -30,7 +30,8 @@ public class TaskController {
     @PostMapping("/create")
     public ResponseEntity<Task> createTask(@Valid @RequestBody TaskCreateDto dto) {
         Task task = taskService.createTask(dto.getTitle(), dto.getDescription(), 
-                dto.getProjectId(), dto.getAssignedToId(), dto.getDueDate());
+                dto.getProjectId(), dto.getAssignedToId(), dto.getDueDate(), 
+                dto.getDeliverable(), dto.getNotes());
         return new ResponseEntity<>(task, HttpStatus.CREATED);
     }
 
@@ -97,6 +98,42 @@ public class TaskController {
             return ResponseEntity.notFound().build();
         }
         task.setTaskId(id);
+        Task updated = taskService.update(task);
+        return ResponseEntity.ok(updated);
+    }
+
+    @PutMapping("/{id}/update")
+    public ResponseEntity<Task> updateTaskDetails(@PathVariable Integer id, 
+                                                   @Valid @RequestBody TaskUpdateDto dto) {
+        if (!taskService.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Task task = taskService.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        
+        if (dto.getTitle() != null) {
+            task.setTitle(dto.getTitle());
+        }
+        if (dto.getDescription() != null) {
+            task.setDescription(dto.getDescription());
+        }
+        if (dto.getStatus() != null) {
+            task.setStatus(dto.getStatus());
+        }
+        if (dto.getAssignedToId() != null) {
+            task.setAssignedToId(dto.getAssignedToId());
+        }
+        if (dto.getDueDate() != null) {
+            task.setDueDate(dto.getDueDate());
+        }
+        if (dto.getDeliverable() != null) {
+            task.setDeliverable(dto.getDeliverable());
+        }
+        if (dto.getNotes() != null) {
+            task.setNotes(dto.getNotes());
+        }
+        
         Task updated = taskService.update(task);
         return ResponseEntity.ok(updated);
     }

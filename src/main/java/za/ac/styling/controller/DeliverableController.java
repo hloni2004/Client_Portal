@@ -27,7 +27,7 @@ public class DeliverableController {
     @PostMapping("/upload")
     public ResponseEntity<Deliverable> uploadDeliverable(@Valid @RequestBody DeliverableUploadDto dto) {
         Deliverable deliverable = deliverableService.uploadDeliverable(dto.getFileName(), 
-                dto.getFileType(), dto.getFileUrl(), dto.getProjectId());
+                dto.getFileType(), dto.getFileUrl(), dto.getProjectId(), dto.getTaskId());
         return new ResponseEntity<>(deliverable, HttpStatus.CREATED);
     }
 

@@ -25,4 +25,6 @@ public interface IUserService extends IService<User, Integer> {
     void updateProfile(Integer userId, String name, String companyName, String phone);
 
     void changePassword(Integer userId, String oldPassword, String newPassword);
+
+    void resetPassword(String email);
 }

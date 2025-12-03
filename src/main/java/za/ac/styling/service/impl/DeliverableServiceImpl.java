@@ -117,11 +117,12 @@ public class DeliverableServiceImpl implements IDeliverableService {
     }
 
     @Override
-    public Deliverable uploadDeliverable(String fileName, String fileType, String fileUrl, Integer projectId) {
+    public Deliverable uploadDeliverable(String fileName, String fileType, String fileUrl, Integer projectId, Integer taskId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Project not found with id: " + projectId));
         
         Deliverable deliverable = DeliverableFactory.createDeliverable(fileName, fileType, fileUrl, project);
+        deliverable.setTaskId(taskId);
         return deliverableRepository.save(deliverable);
     }
 }
